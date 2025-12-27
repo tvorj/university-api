@@ -1,0 +1,62 @@
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.db import get_db
+from app.models import Teacher
+from app.schemas import TeacherCreate, TeacherUpdate, TeacherOut
+
+router = APIRouter(prefix="/teachers", tags=["teachers"])
+
+
+@router.post("", response_model=TeacherOut)
+def create_teacher(payload: TeacherCreate, db: Session = Depends(get_db)):
+    t = Teacher(
+        fio=payload.fio,
+        kafedra=payload.kafedra,
+        dolzhnost=payload.dolzhnost,
+        uch_stepen=payload.uch_stepen,
+    )
+    db.add(t)
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.get("", response_model=List[TeacherOut])
+def list_teachers(limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
+    return db.query(Teacher).order_by(Teacher.id).offset(offset).limit(limit).all()
+
+
+@router.get("/{teacher_id}", response_model=TeacherOut)
+def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    t = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return t
+
+
+@router.patch("/{teacher_id}", response_model=TeacherOut)
+def update_teacher(teacher_id: int, payload: TeacherUpdate, db: Session = Depends(get_db)):
+    t = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    for k, v in payload.dict(exclude_unset=True).items():
+        setattr(t, k, v)
+
+    db.commit()
+    db.refresh(t)
+    return t
+
+
+@router.delete("/{teacher_id}")
+def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    t = db.query(Teacher).filter(Teacher.id == teacher_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    db.delete(t)
+    db.commit()
+    return {"ok": True}
