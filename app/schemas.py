@@ -81,3 +81,25 @@ class LessonOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class LessonWithDetailsOut(BaseModel):
+    id: int
+    teacher_id: int
+    subject_id: int
+    data: date
+    vremya: time
+    auditoriya: str
+    vid_zanyatiya: str
+    gruppa: str
+
+    teacher: TeacherOut
+    subject: SubjectOut
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherLessonsCountOut(BaseModel):
+    teacher_id: int
+    lessons_count: int

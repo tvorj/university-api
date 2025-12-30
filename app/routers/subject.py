@@ -23,6 +23,16 @@ def create_subject(payload: SubjectCreate, db: Session = Depends(get_db)):
 def list_subjects(limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
     return db.query(Subject).order_by(Subject.id).offset(offset).limit(limit).all()
 
+@router.patch("/bulk/mark-nonmandatory")
+def mark_nonmandatory(min_hours: int = 32, db: Session = Depends(get_db)):
+    updated = (
+        db.query(Subject)
+        .filter(Subject.chislo_chasov < min_hours)
+        .update({Subject.obyazatelnost: False}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated}
+
 
 @router.get("/{subject_id}", response_model=SubjectOut)
 def get_subject(subject_id: int, db: Session = Depends(get_db)):
