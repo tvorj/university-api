@@ -1,6 +1,9 @@
 from sqlalchemy import Column, BigInteger, Text, Integer, Boolean, Date, Time, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 
+from sqlalchemy.dialects.postgresql import JSONB
+
+
 Base = declarative_base()
 
 
@@ -32,6 +35,8 @@ class Lesson(Base):
     __tablename__ = "lesson"
 
     id = Column(BigInteger, primary_key=True)
+
+    meta = Column(JSONB, nullable=False, default=dict)
 
     teacher_id = Column(BigInteger, ForeignKey("teacher.id"), nullable=False)
     subject_id = Column(BigInteger, ForeignKey("subject.id"), nullable=False)

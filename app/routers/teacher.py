@@ -41,6 +41,23 @@ def lessons_count_by_teacher(db: Session = Depends(get_db)):
     )
     return [{"teacher_id": r.teacher_id, "lessons_count": r.lessons_count} for r in rows]
 
+@router.get("/search/regex", response_model=List[TeacherOut])
+def search_teachers_regex(
+    pattern: str,
+    limit: int = 20,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(Teacher)
+        .filter(Teacher.fio.op("~")(pattern))
+        .order_by(Teacher.id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
 
 @router.get("/{teacher_id}", response_model=TeacherOut)
 def get_teacher(teacher_id: int, db: Session = Depends(get_db)):

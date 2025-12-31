@@ -90,6 +90,18 @@ def search_lessons(
     return q.order_by(col).offset(offset).limit(limit).all()
 
 
+@router.get("/by-meta", response_model=List[LessonOut])
+def lessons_by_meta(key: str, value: str, limit: int = 20, offset: int = 0, db: Session = Depends(get_db)):
+    return (
+        db.query(Lesson)
+        .filter(Lesson.meta[key].astext == value)
+        .order_by(Lesson.id)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
 @router.get("/{lesson_id}", response_model=LessonOut)
 def get_lesson(lesson_id: int, db: Session = Depends(get_db)):
     l = db.query(Lesson).filter(Lesson.id == lesson_id).first()
